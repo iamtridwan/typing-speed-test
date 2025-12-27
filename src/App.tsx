@@ -13,11 +13,32 @@ function App() {
   const [startTime, setStartTime] = useState(false);
   const [currentText, setCurrentText] = useState("");
   const [clearInput, setClearInput] = useState(false);
+  const ONE_MINUTE = 60_000;
+  const INTERVAL =1_000;
+
+  const [time, setTime] = useState(ONE_MINUTE / INTERVAL)
 
   const handleGetData = () => {
     const text = getData(currentLevel);
     setCurrentText(text);
   };
+
+  const handleTimer = () => {
+    let elapsed = ONE_MINUTE;
+    const interval = setInterval(() => {
+      elapsed -= INTERVAL;
+      setTime(elapsed / 1000)
+
+      if(elapsed <= 0) {
+        clearInterval(interval);
+        setTime(0)
+        setStartTime(false)
+      }
+
+    }, INTERVAL)
+
+
+  }
 
   useEffect(() => {
     handleGetData();
@@ -27,7 +48,7 @@ function App() {
     <>
       <Header score={score} />
       <div className="flex items-center md:items-start lg:items-center flex-col lg:flex-row justify-between gap-4 mt-16 pb-3 border-b border-[#949497]">
-        <ScoreBoard />
+        <ScoreBoard time={time} />
         <Controls
           handleRefresh={() => {
             handleGetData()
@@ -44,7 +65,11 @@ function App() {
         currentText={currentText}
         startTime={startTime}
         clearInput={clearInput}
-        setStartTime={() => setStartTime(true)}
+        setStartTime={() => {
+          setStartTime(true);
+          handleTimer()
+        
+        }}
       />
     </>
   );

@@ -29,6 +29,8 @@ const TextArea = ({ currentText, startTime, setStartTime, clearInput }: Props) =
     }
   }, [clearInput]) 
 
+  console.log(userInput)
+
   return (
     <div className="w-full p-2 md:p-5 h-fit relative">
       <input
