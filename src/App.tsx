@@ -1,13 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import Header from "./components/Header";
 import ScoreBoard from "./components/ScoreBoard";
 import Controls from "./components/Controls";
+import TextArea from "./components/TextArea";
+import { getData } from "./lib/utils";
 
 function App() {
   const [score, setScore] = useState(92);
-  const [currentLevel, setCurrentLevel] = useState("Medium");
+  const [currentLevel, setCurrentLevel] = useState("Easy");
   const [currentTime, setCurrentTime] = useState("Time (60s)");
+  const [startTime, setStartTime] = useState(false);
+  const [currentText, setCurrentText] = useState("");
+
+  const handleGetData = () => {
+    const text = getData(currentLevel);
+    setCurrentText(text);
+  };
+
+  useEffect(() => {
+    handleGetData();
+  }, [currentLevel]);
 
   return (
     <>
@@ -21,6 +34,11 @@ function App() {
           setTime={setCurrentTime}
         />
       </div>
+      <TextArea
+        currentText={currentText}
+        startTime={startTime}
+        setStartTime={() => setStartTime(true)}
+      />
     </>
   );
 }
