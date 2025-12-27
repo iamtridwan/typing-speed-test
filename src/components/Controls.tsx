@@ -1,18 +1,30 @@
 import Icon from "../assets/images/icon-down-arrow.svg";
-import { useState } from "react";
+import RestartIcon from "../assets/images/icon-restart.svg";
+import { useRef, useState } from "react";
 
 type Props = {
   currentLevel: string;
   currentTime: string;
   setLevel: (level: string) => void;
   setTime: (time: string) => void;
+  handleRefresh: () => void;
+  hasStarted: boolean;
 };
 
-const Controls = ({ currentLevel, currentTime, setLevel, setTime }: Props) => {
+const Controls = ({
+  currentLevel,
+  currentTime,
+  setLevel,
+  setTime,
+  handleRefresh,
+  hasStarted,
+}: Props) => {
   const levels = ["Easy", "Medium", "Hard"];
   const mode = ["Time (60s)", "Passage"];
   const [showLevels, setShowLevels] = useState(false);
   const [showTime, setShowTime] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  // const spinDuration = 800;
 
   return (
     <div className="flex items-center md:gap-4 justify-between md:justify-start w-full md:w-fit">
@@ -21,6 +33,7 @@ const Controls = ({ currentLevel, currentTime, setLevel, setTime }: Props) => {
         {levels.map((level) => (
           <button
             key={level}
+            disabled={!hasStarted}
             onClick={() => setLevel(level)}
             className={`${
               level === currentLevel
@@ -32,6 +45,27 @@ const Controls = ({ currentLevel, currentTime, setLevel, setTime }: Props) => {
             {level}
           </button>
         ))}
+        <button
+          onClick={() => {
+            handleRefresh();
+            const img = imgRef.current;
+            if (!img) return;
+
+            // Prevent double‑clicks while animation is running
+            if (img.classList.contains("spin-once")) return;
+
+            img.classList.add("spin-once");
+
+            const cleanUp = () => {
+              img.classList.remove("spin-once");
+              img.removeEventListener("animationend", cleanUp);
+            };
+            img.addEventListener("animationend", cleanUp);
+          }}
+          disabled={!hasStarted}
+        >
+          <img src={RestartIcon} alt="refresh icon" ref={imgRef} />
+        </button>
       </div>
       <div className="hidden md:flex items-center gap-2 ">
         <p className="text-[#949497] text-base m-0">Mode:</p>
@@ -77,6 +111,7 @@ const Controls = ({ currentLevel, currentTime, setLevel, setTime }: Props) => {
                       type="radio"
                       id={level}
                       value={level}
+                      checked={level === currentLevel}
                       onChange={() => {
                         setLevel(level);
                         // setShowLevels(false);
@@ -125,6 +160,7 @@ const Controls = ({ currentLevel, currentTime, setLevel, setTime }: Props) => {
                       type="radio"
                       id={level}
                       value={level}
+                      checked={level === currentTime}
                       onChange={() => {
                         setTime(level);
                         // setShowLevels(false);
@@ -148,6 +184,28 @@ const Controls = ({ currentLevel, currentTime, setLevel, setTime }: Props) => {
             </ul>
           )}
         </div>
+        <button
+        className="absolute top-24 right-8 md:hidden"
+          onClick={() => {
+            handleRefresh();
+            const img = imgRef.current;
+            if (!img) return;
+
+            // Prevent double‑clicks while animation is running
+            if (img.classList.contains("spin-once")) return;
+
+            img.classList.add("spin-once");
+
+            const cleanUp = () => {
+              img.classList.remove("spin-once");
+              img.removeEventListener("animationend", cleanUp);
+            };
+            img.addEventListener("animationend", cleanUp);
+          }}
+          disabled={!hasStarted}
+        >
+          <img src={RestartIcon} alt="refresh icon" ref={imgRef} />
+        </button>
       </div>
     </div>
   );
