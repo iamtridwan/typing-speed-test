@@ -17,6 +17,7 @@ function App() {
   const INTERVAL =1_000;
 
   const [time, setTime] = useState(ONE_MINUTE / INTERVAL)
+  const [accuracy, setAccuracy] = useState(0)
 
   const handleGetData = () => {
     const text = getData(currentLevel);
@@ -24,18 +25,23 @@ function App() {
   };
 
   const handleTimer = () => {
-    let elapsed = ONE_MINUTE;
-    const interval = setInterval(() => {
-      elapsed -= INTERVAL;
-      setTime(elapsed / 1000)
-
-      if(elapsed <= 0) {
-        clearInterval(interval);
-        setTime(0)
-        setStartTime(false)
-      }
-
-    }, INTERVAL)
+    if (currentTime === 'Passage') {
+      setTime(0)
+    } else {
+      setTime(ONE_MINUTE / INTERVAL)
+      let elapsed = ONE_MINUTE;
+      const interval = setInterval(() => {
+        elapsed -= INTERVAL;
+        setTime(elapsed / 1000)
+  
+        if(elapsed <= 0) {
+          clearInterval(interval);
+          setTime(0)
+          setStartTime(false)
+        }
+  
+      }, INTERVAL)
+    }
 
 
   }
@@ -48,11 +54,11 @@ function App() {
     <>
       <Header score={score} />
       <div className="flex items-center md:items-start lg:items-center flex-col lg:flex-row justify-between gap-4 mt-16 pb-3 border-b border-[#949497]">
-        <ScoreBoard time={time} />
+        <ScoreBoard time={time} accuracy={accuracy} />
         <Controls
           handleRefresh={() => {
             handleGetData()
-            setClearInput(!clearInput)
+            setClearInput(true)
           }}
           currentLevel={currentLevel}
           currentTime={currentTime}
@@ -62,12 +68,15 @@ function App() {
         />
       </div>
       <TextArea
+      setAccuracy={setAccuracy}
         currentText={currentText}
         startTime={startTime}
         clearInput={clearInput}
         setStartTime={() => {
           setStartTime(true);
           handleTimer()
+          handleGetData()
+          setClearInput(true);  
         
         }}
       />

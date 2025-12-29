@@ -33,7 +33,6 @@ const Controls = ({
         {levels.map((level) => (
           <button
             key={level}
-            disabled={!hasStarted}
             onClick={() => setLevel(level)}
             className={`${
               level === currentLevel
