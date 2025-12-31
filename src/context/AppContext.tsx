@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, type ReactNode } from "react";
-import data from "../lib/data.json";
+import { getData } from "../lib/utils";
 
 type StateType = {
   level: "Easy" | "Hard" | "Medium";
@@ -10,15 +10,18 @@ type StateType = {
   resetTime: false;
   currentText: string;
   userInput: string;
+  playStarted: boolean;
+  clock: number;
 };
 
 type ActionType =
   | { type: "SELECT_LEVEL"; payload: "Easy" | "Medium" | "Hard" }
   | { type: "SELECT_MODE"; payload: "Time (60s)" | "Passage" }
   | { type: "SET_ACCURACY"; payload: number }
-  | { type: "SET_CURRENT_TEXT"; payload: "Easy" | "Medium" | "Hard" }
+  | { type: "SET_CURRENT_TEXT"}
   | { type: "UPDATE_USERINPUT"; payload: string }
-  | { type: "RESET_USERINPUT"; payload: string };
+  | { type: "START_PLAY"; payload: boolean }
+  | { type: "TIMER"; payload: number };
 
 const initialState: StateType = {
   level: "Easy",
@@ -29,6 +32,8 @@ const initialState: StateType = {
   userInput: "",
   wpm: 0,
   resetTime: false,
+  playStarted: false,
+  clock: 60,    
 };
 
 function reducer(state: StateType, action: ActionType): StateType {
@@ -44,17 +49,17 @@ function reducer(state: StateType, action: ActionType): StateType {
         | "easy"
         | "medium"
         | "hard";
-      const texts: any[] = data[currentMode];
-      const randomNumber = Math.random() * texts.length;
+
       return {
         ...state,
-        currentText: texts[randomNumber],
+        currentText: getData(currentMode),
       };
 
     case "SELECT_LEVEL":
       return {
         ...state,
         level: action.payload,
+        currentText: getData(action.payload.toLowerCase())
       };
 
     case "UPDATE_USERINPUT":
@@ -63,10 +68,11 @@ function reducer(state: StateType, action: ActionType): StateType {
         userInput: action.payload,
       };
 
-    case "RESET_USERINPUT":
+    case "START_PLAY":      
       return {
         ...state,
-        userInput: "",
+        playStarted: action.payload,
+        userInput:  '', // remove this 
       };
 
     case "SET_ACCURACY":
@@ -75,6 +81,12 @@ function reducer(state: StateType, action: ActionType): StateType {
         ...state,
         accuracy: 100,
       };
+
+    case 'TIMER':
+        return {
+            ...state,
+            clock: action.payload
+        }
 
     default:
       return state;

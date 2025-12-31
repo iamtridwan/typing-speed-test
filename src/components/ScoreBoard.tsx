@@ -1,14 +1,17 @@
-type Props = {
-  time: number;
-  accuracy: number;
-};
+import { useAppContext } from "../context/AppContext";
 
-const ScoreBoard = ({ time, accuracy }: Props) => {
+// type Props = {
+//   time: number;
+// };
+
+const ScoreBoard = () => {
+    const { state } = useAppContext()
+
   const formatTime = () => {
-    if (time < 10) {
-      return `0:0${time}`;
+    if (state.clock < 10) {
+      return `0:0${state.clock}`;
     } else {
-      return `0:${time}`;
+      return `0:${state.clock}`;
     }
   };
 
@@ -21,16 +24,16 @@ const ScoreBoard = ({ time, accuracy }: Props) => {
       <div className="flex items-center md:gap-2 pr-12 md:pr-4 border-r border-[#949497] flex-col md:flex-row justify-center">
         <p className="text-[#949497] m-0 text-base md:text-lg">Accuracy:</p>
         <p className="text-white font-bold m-0 text-xl md:text-lg">
-          {accuracy}%
+          {state.accuracy}%
         </p>
       </div>
       <div className="flex items-center md:gap-2 flex-col md:flex-row justify-center">
         <p className="text-[#949497] text-base m-0 md:text-lg">Time:</p>
         <p
           className={`${
-            time < 10
+            state.clock < 10
               ? "text-[#D64D5B]"
-              : time >= 10 && time <= 20
+              : state.clock >= 10 && state.clock <= 20
               ? "text-[#F4DC73]"
               : "text-white"
           } font-bold m-0 text-xl md:text-lg`}
