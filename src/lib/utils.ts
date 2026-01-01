@@ -62,14 +62,13 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
   }
   
   if (state.mode === "Time (60s)") {
-    let elapsed = ONE_MINUTE;
+    let elapsed = state.clock * 1000;
     
     const intervalId = setInterval(() => {
       elapsed -= INTERVAL;
       
       if (elapsed <= 0) {
         clearInterval(intervalId);
-        clearInterval(state.intervalId);
         
         // Calculate final metrics when timer expires
         const totalChars = state.correctChars + state.wrongChars;
@@ -77,12 +76,15 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
           ? Math.round((state.correctChars / totalChars) * 100) 
           : 0;
         
-        // Calculate WPM (full 60 seconds elapsed)
         const wordsTyped = state.correctChars / 5;
-        const wpm = Math.round(wordsTyped); // 1 minute = wordsTyped / 1
+        const wpm = Math.round(wordsTyped);
         
         dispatch({ type: "SET_ACCURACY", payload: accuracy });
         dispatch({ type: "UPDATE_WPM", payload: wpm });
+        
+        // Update best score
+        updateBestScore(wpm, dispatch);
+        
         dispatch({ type: "TIMER", payload: 0 });
         dispatch({ type: "START_PLAY", payload: false });
         dispatch({ type: "END_PLAY", payload: true });
@@ -92,10 +94,24 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
       }
     }, INTERVAL);
     
-    // Store the interval ID in state
     dispatch({ type: "SET_INTERVAL_ID", payload: intervalId as any });
     
     return intervalId;
+  }
+}
+
+// Helper function to update best score
+function updateBestScore(currentWpm: number, dispatch: (action: any) => void) {
+  // Get best score from localStorage
+  const storedBestScore = localStorage.getItem('typingTestBestScore');
+  const bestScore = storedBestScore ? parseInt(storedBestScore) : 0;
+  
+  // Update if current score is higher
+  if (currentWpm > bestScore) {
+    localStorage.setItem('typingTestBestScore', currentWpm.toString());
+    dispatch({ type: "SET_BEST_SCORE", payload: currentWpm });
+  } else {
+    dispatch({ type: "SET_BEST_SCORE", payload: bestScore });
   }
 }
 
@@ -119,6 +135,9 @@ export const stopTimer = (state: any, dispatch: (action: any) => void) => {
     
     dispatch({ type: "SET_ACCURACY", payload: accuracy });
     dispatch({ type: "UPDATE_WPM", payload: wpm });
+    
+    // Update best score if current WPM is higher
+    updateBestScore(wpm, dispatch);
   }
 };
 

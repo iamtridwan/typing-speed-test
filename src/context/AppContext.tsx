@@ -24,6 +24,7 @@ type ActionType =
   | { type: "SELECT_MODE"; payload: "Time (60s)" | "Passage" }
   | { type: "SET_ACCURACY"; payload: number }
   | { type: "SET_CURRENT_TEXT" }
+  | { type: "SET_BEST_SCORE"; payload: number }
   | { type: "UPDATE_USERINPUT"; payload: string }
   | { type: "START_PLAY"; payload: boolean }
   | { type: "END_PLAY"; payload: boolean }
@@ -59,6 +60,12 @@ function reducer(state: StateType, action: ActionType): StateType {
       return {
         ...state,
         mode: action.payload,
+      };
+
+    case "SET_BEST_SCORE":
+      return {
+        ...state,
+        bestScore: action.payload,
       };
 
     case "SET_INTERVAL_ID":

@@ -11,6 +11,11 @@ function App() {
   const { state, dispatch } = useAppContext();
   useEffect(() => {
     dispatch({ type: "SET_CURRENT_TEXT" });
+
+    const storedBestScore = localStorage.getItem('typingTestBestScore');
+    if (storedBestScore) {
+      dispatch({ type: "SET_BEST_SCORE", payload: parseInt(storedBestScore) });
+    }
   }, []);
 
 
