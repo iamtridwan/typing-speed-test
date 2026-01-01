@@ -3,6 +3,8 @@ import StarOne from "../assets/images/pattern-star-1.svg";
 import StarTwo from "../assets/images/pattern-star-2.svg";
 import { useAppContext } from "../context/AppContext";
 import RestartIcon from "../assets/images/icon-restart.svg";
+import NewPBIcon from "../assets/images/icon-new-pb.svg";
+import Confetti from "../assets/images/pattern-confetti.svg";
 import { stopTimer } from "../lib/utils";
 
 const CompleteModal = () => {
@@ -11,17 +13,28 @@ const CompleteModal = () => {
   return (
     <div className="w-full h-screen z-10 absolute top-20 left-0 bg-[#121212] flex items-start pt-12 md:pt-0 md:items-center justify-center">
       <div className="flex items-center justify-center relative w-full flex-col gap-4">
-        <div className="rounded-full w-20 h-20 bg-[#4DD67B]/10 flex items-center justify-center">
-          <div className="rounded-full w-15 h-15 bg-[#4DD67B]/40 flex items-center justify-center">
-            <img src={SuccessIcon} alt="completed icon" className="w-11 h-11" />
+        {state.isHighestScore ? (
+          <img src={NewPBIcon} alt="personal best icon" className="w-11 h-11" />
+        ) : (
+          <div className="rounded-full w-20 h-20 bg-[#4DD67B]/10 flex items-center justify-center">
+            <div className="rounded-full w-15 h-15 bg-[#4DD67B]/40 flex items-center justify-center">
+              <img
+                src={SuccessIcon}
+                alt="completed icon"
+                className="w-11 h-11"
+              />
+            </div>
           </div>
-        </div>
+        )}
+
         <div className="">
           <h2 className="text-white font-bold text-lg md:text-xl lg:text-2xl">
-            Test Complete!
+            {state.isHighestScore ? "High Score Smashed!" : "Test Complete!"}
           </h2>
           <p className="text-[#949497]">
-            Solid run. Keep pushing to beat your high score.
+            {state.isHighestScore
+              ? "You’re getting faster. That was incredible typing."
+              : "Solid run. Keep pushing to beat your high score."}
           </p>
         </div>
         <div className="flex px-8 gap-2 items-center flex-col md:flex-row w-full md:w-[80%] lg:w-[40%]">
@@ -74,21 +87,27 @@ const CompleteModal = () => {
               dispatch({ type: "SET_CURRENT_TEXT" });
               dispatch({ type: "TIMER", payload: 60 }); // Reset clock to 60
             }}
-            className="transition-colors cursor-pointer flex text-white gap-2 bg-[#262626] rounded-lg p-2 items-center justify-center"
+            className="transition-colors invert cursor-pointer flex text-white gap-2 bg-[#262626] rounded-lg py-2 px-3 items-center justify-center"
           >
-            <span>Restart Test</span>
+            <span>{state.isHighestScore ? 'Beat This Score' : 'Go Again'}</span>
             <img src={RestartIcon} alt="refresh icon" />
           </button>
         </div>
         <img
           src={StarOne}
           alt="star icon"
-          className="max-w-[3rem] absolute -bottom-16 right-5"
+          className={`${state.isHighestScore ? "hidden" : "max-w-[3rem] absolute -bottom-16 right-5"} `}
         />
         <img
           src={StarTwo}
           alt="star icon"
-          className="max-w-[3rem] absolute top-6 left-12"
+          className={`${state.isHighestScore ? "hidden" : "max-w-[3rem] absolute top-6 left-12"}`}
+        />
+
+        <img
+          src={Confetti}
+          alt="confetti image"
+          className={`${state.isHighestScore ? "max-w-full" : "hidden"} `}
         />
       </div>
     </div>

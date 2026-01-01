@@ -15,6 +15,7 @@ type StateType = {
   playStarted: boolean;
   playEnded: boolean;
   isPlayReset: boolean;
+  isHighestScore: boolean;
   clock: number;
   intervalId: number | null;
 };
@@ -33,6 +34,7 @@ type ActionType =
   | { type: "UPDATE_WPM"; payload: number }
   | { type: "UPDATE_CORRECT_CHARS"; payload: number }
   | { type: "UPDATE_WRONG_CHARS"; payload: number }
+  | { type: "SET_IS_HIGHEST_SCORE"; payload: boolean }
   | { type: "SET_INTERVAL_ID"; payload: number | null };
 
 const initialState: StateType = {
@@ -51,6 +53,7 @@ const initialState: StateType = {
   playEnded: false,
   correctChars: 0,
   wrongChars: 0,
+  isHighestScore: false,
 
 };
 
@@ -66,6 +69,12 @@ function reducer(state: StateType, action: ActionType): StateType {
       return {
         ...state,
         bestScore: action.payload,
+      };
+
+    case "SET_IS_HIGHEST_SCORE":
+      return {
+        ...state,
+        isHighestScore: action.payload,
       };
 
     case "SET_INTERVAL_ID":

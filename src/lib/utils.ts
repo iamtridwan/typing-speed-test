@@ -1,5 +1,5 @@
 import data from "./data.json";
-const ONE_MINUTE = 60_000;
+// const ONE_MINUTE = 60_000;
 const INTERVAL = 1_000;
 
 export function getData(level: string) {
@@ -110,8 +110,10 @@ function updateBestScore(currentWpm: number, dispatch: (action: any) => void) {
   if (currentWpm > bestScore) {
     localStorage.setItem('typingTestBestScore', currentWpm.toString());
     dispatch({ type: "SET_BEST_SCORE", payload: currentWpm });
+    dispatch({ type: "SET_IS_HIGHEST_SCORE", payload: true });
   } else {
     dispatch({ type: "SET_BEST_SCORE", payload: bestScore });
+    dispatch({ type: "SET_IS_HIGHEST_SCORE", payload: false });
   }
 }
 
@@ -140,4 +142,5 @@ export const stopTimer = (state: any, dispatch: (action: any) => void) => {
     updateBestScore(wpm, dispatch);
   }
 };
+
 
