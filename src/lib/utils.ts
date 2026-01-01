@@ -55,10 +55,9 @@ export function getData(level: string) {
 // }
 
 export function handleTimer(state: any, dispatch: (action: any) => void) {
-  console.log('handleTimer called')
   
   if (state.mode === "Passage") {
-    dispatch({ type: "TIMER", payload: 60 });
+    dispatch({ type: "TIMER", payload: 0 });
     return;
   }
   
@@ -70,8 +69,23 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
       
       if (elapsed <= 0) {
         clearInterval(intervalId);
+        clearInterval(state.intervalId);
+        
+        // Calculate final metrics when timer expires
+        const totalChars = state.correctChars + state.wrongChars;
+        const accuracy = totalChars > 0 
+          ? Math.round((state.correctChars / totalChars) * 100) 
+          : 0;
+        
+        // Calculate WPM (full 60 seconds elapsed)
+        const wordsTyped = state.correctChars / 5;
+        const wpm = Math.round(wordsTyped); // 1 minute = wordsTyped / 1
+        
+        dispatch({ type: "SET_ACCURACY", payload: accuracy });
+        dispatch({ type: "UPDATE_WPM", payload: wpm });
         dispatch({ type: "TIMER", payload: 0 });
         dispatch({ type: "START_PLAY", payload: false });
+        dispatch({ type: "END_PLAY", payload: true });
         dispatch({ type: "SET_INTERVAL_ID", payload: null });
       } else {
         dispatch({ type: "TIMER", payload: elapsed / 1000 });
@@ -86,10 +100,25 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
 }
 
 // Add a new function to stop the timer
-export function stopTimer(state: any, dispatch: (action: any) => void) {
+export const stopTimer = (state: any, dispatch: (action: any) => void) => {
   if (state.intervalId) {
     clearInterval(state.intervalId);
     dispatch({ type: "SET_INTERVAL_ID", payload: null });
-    console.log("Timer stopped");
   }
-}
+  
+  // Only calculate metrics if user actually typed something
+  if (state.userInput.length > 0) {
+    const totalChars = state.correctChars + state.wrongChars;
+    const accuracy = totalChars > 0 
+      ? Math.round((state.correctChars / totalChars) * 100) 
+      : 0;
+    
+    const timeElapsed = (60 - state.clock) / 60;
+    const wordsTyped = state.correctChars / 5;
+    const wpm = timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0;
+    
+    dispatch({ type: "SET_ACCURACY", payload: accuracy });
+    dispatch({ type: "UPDATE_WPM", payload: wpm });
+  }
+};
+

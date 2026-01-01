@@ -6,11 +6,14 @@ type StateType = {
   mode: "Time (60s)" | "Passage";
   accuracy: number;
   bestScore: number;
+  correctChars: number;
+  wrongChars: number;
   wpm: number;
   resetTime: false;
   currentText: string;
   userInput: string;
   playStarted: boolean;
+  playEnded: boolean;
   isPlayReset: boolean;
   clock: number;
   intervalId: number | null;
@@ -23,8 +26,12 @@ type ActionType =
   | { type: "SET_CURRENT_TEXT" }
   | { type: "UPDATE_USERINPUT"; payload: string }
   | { type: "START_PLAY"; payload: boolean }
+  | { type: "END_PLAY"; payload: boolean }
   | { type: "TIMER"; payload: number }
   | { type: "SET_PLAY_RESET"; payload: boolean }
+  | { type: "UPDATE_WPM"; payload: number }
+  | { type: "UPDATE_CORRECT_CHARS"; payload: number }
+  | { type: "UPDATE_WRONG_CHARS"; payload: number }
   | { type: "SET_INTERVAL_ID"; payload: number | null };
 
 const initialState: StateType = {
@@ -40,6 +47,10 @@ const initialState: StateType = {
   clock: 60,
   intervalId: null,
   isPlayReset: false,
+  playEnded: false,
+  correctChars: 0,
+  wrongChars: 0,
+
 };
 
 function reducer(state: StateType, action: ActionType): StateType {
@@ -56,11 +67,27 @@ function reducer(state: StateType, action: ActionType): StateType {
         intervalId: action.payload,
       };
 
-    case 'SET_PLAY_RESET':
-        return {
-            ...state,
-            isPlayReset: action.payload
-        }
+    case "SET_PLAY_RESET":
+      return {
+        ...state,
+        isPlayReset: action.payload,
+      };
+    case "UPDATE_CORRECT_CHARS":
+      return {
+        ...state,
+        correctChars: Number(action.payload),
+      };
+    case "UPDATE_WRONG_CHARS":
+      return {
+        ...state,
+        wrongChars: Number(action.payload),
+      };
+
+    case "UPDATE_WPM":
+      return {
+        ...state,
+        wpm: action.payload,
+      };
 
     case "SET_CURRENT_TEXT":
       const currentMode = state.level.toLowerCase() as
@@ -92,11 +119,17 @@ function reducer(state: StateType, action: ActionType): StateType {
         playStarted: action.payload,
       };
 
+    case "END_PLAY":
+      return {
+        ...state,
+        playEnded: action.payload,
+      };
+
     case "SET_ACCURACY":
       // work to do
       return {
         ...state,
-        accuracy: 100,
+        accuracy: action.payload,
       };
 
     case "TIMER":

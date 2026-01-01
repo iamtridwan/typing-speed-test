@@ -5,13 +5,13 @@ import ScoreBoard from "./components/ScoreBoard";
 import Controls from "./components/Controls";
 import TextArea from "./components/TextArea";
 import { useAppContext } from "./context/AppContext";
+import CompleteModal from "./components/CompleteModal";
 
 function App() {
-
-  const { dispatch } = useAppContext()
+  const { state, dispatch } = useAppContext();
   useEffect(() => {
-    dispatch({type: 'SET_CURRENT_TEXT'})
-  }, [])
+    dispatch({ type: "SET_CURRENT_TEXT" });
+  }, []);
 
 
   return (
@@ -22,6 +22,7 @@ function App() {
         <Controls />
       </div>
       <TextArea />
+      {state.playEnded && <CompleteModal />}
     </>
   );
 }
