@@ -1,30 +1,16 @@
 import Icon from "../assets/images/icon-down-arrow.svg";
 import RestartIcon from "../assets/images/icon-restart.svg";
 import { useRef, useState } from "react";
+import { useAppContext } from "../context/AppContext";
 
-type Props = {
-  currentLevel: string;
-  currentTime: string;
-  setLevel: (level: string) => void;
-  setTime: (time: string) => void;
-  handleRefresh: () => void;
-  hasStarted: boolean;
-};
 
-const Controls = ({
-  currentLevel,
-  currentTime,
-  setLevel,
-  setTime,
-  handleRefresh,
-  hasStarted,
-}: Props) => {
+const Controls = () => {
   const levels = ["Easy", "Medium", "Hard"];
   const mode = ["Time (60s)", "Passage"];
   const [showLevels, setShowLevels] = useState(false);
   const [showTime, setShowTime] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
-  // const spinDuration = 800;
+  const { state, dispatch } = useAppContext();
 
   return (
     <div className="flex items-center md:gap-4 justify-between md:justify-start w-full md:w-fit">
@@ -33,10 +19,15 @@ const Controls = ({
         {levels.map((level) => (
           <button
             key={level}
-            disabled={!hasStarted}
-            onClick={() => setLevel(level)}
+            onClick={() =>
+              dispatch({
+                type: "SELECT_LEVEL",
+                payload: level as "Easy" | "Medium" | "Hard",
+              })
+            }
+            disabled={state.playStarted}
             className={`${
-              level === currentLevel
+              level === state.level
                 ? "text-[#177DFF] hover:text-[#4CA6FF] border-[#177DFF] hover:border-[#4CA6FF]"
                 : "text-white hover:text-white border-[#949497] hover:border-[#949497]"
             }
@@ -47,7 +38,9 @@ const Controls = ({
         ))}
         <button
           onClick={() => {
-            handleRefresh();
+            dispatch({
+              type: "SET_CURRENT_TEXT",
+            });
             const img = imgRef.current;
             if (!img) return;
 
@@ -62,7 +55,7 @@ const Controls = ({
             };
             img.addEventListener("animationend", cleanUp);
           }}
-          disabled={!hasStarted}
+          disabled={state.playStarted}
         >
           <img src={RestartIcon} alt="refresh icon" ref={imgRef} />
         </button>
@@ -72,9 +65,15 @@ const Controls = ({
         {mode.map((level) => (
           <button
             key={level}
-            onClick={() => setTime(level)}
+            onClick={() =>
+              dispatch({
+                type: "SELECT_MODE",
+                payload: level as "Time (60s)" | "Passage",
+              })
+            }
+            disabled={state.playStarted}
             className={`${
-              level === currentTime
+              level === state.mode
                 ? "text-[#177DFF] hover:text-[#4CA6FF] border-[#177DFF] hover:border-[#4CA6FF]"
                 : "text-white hover:text-white border-[#949497] hover:border-[#949497]"
             }
@@ -88,16 +87,22 @@ const Controls = ({
       <div className="flex md:hidden w-full items-center gap-4">
         <div className="relative w-full">
           <button
+          type="button"
             className="flex items-center justify-center w-full gap-3 text-white hover:text-white border-[#949497] hover:border-[#949497] px-3 py-1.5 border rounded-[10px] bg-none transition-colors cursor-pointer text-base md:text-lg"
-            onClick={() => setShowLevels(!showLevels)}
+            onClick={() => {
+              setShowLevels(!showLevels)
+              setShowTime(false);
+            }}
+            disabled={state.playStarted}
           >
-            <span>{currentLevel}</span>
+            <span>{state.level}</span>
             <img src={Icon} alt="dropdown arrow" />
           </button>
           {showLevels && (
             <ul className="absolute -bottom-38 z-10 bg-[#262626] w-full rounded-xl p-3">
               {levels.map((level) => (
                 <li
+                key={level}
                   className={`w-full ${
                     level === "Hard" ? "" : "border-b border-[#949497] mb-3"
                   } `}
@@ -111,10 +116,12 @@ const Controls = ({
                       type="radio"
                       id={level}
                       value={level}
-                      checked={level === currentLevel}
-                      onChange={() => {
-                        setLevel(level);
-                        // setShowLevels(false);
+                      checked={level === state.level}
+                      onChange={(e) => {
+                        dispatch({
+                          type: "SELECT_LEVEL",
+                          payload: e.target.value as "Easy" | "Medium" | "Hard",
+                        });
                       }}
                       name="list-radio"
                       className="sr-only peer"
@@ -137,16 +144,22 @@ const Controls = ({
         </div>
         <div className="relative w-full">
           <button
+          type="button"
             className="flex items-center justify-center w-full gap-3 text-white hover:text-white border-[#949497] hover:border-[#949497] px-5 py-3 border rounded-[14px] bg-none transition-colors cursor-pointer text-base md:text-lg"
-            onClick={() => setShowTime(!showTime)}
+            onClick={() => {
+              setShowTime(!showTime)
+              setShowLevels(false)
+            }}
+            disabled={state.playStarted}
           >
-            <span>{currentTime}</span>
+            <span>{state.mode}</span>
             <img src={Icon} alt="dropdown arrow" />
           </button>
           {showTime && (
             <ul className="absolute -bottom-26 z-10 bg-[#262626] w-full rounded-xl p-3">
               {mode.map((level) => (
                 <li
+                key={level}
                   className={`w-full ${
                     level === "Passage" ? "" : "border-b border-[#949497] mb-3"
                   } `}
@@ -160,9 +173,12 @@ const Controls = ({
                       type="radio"
                       id={level}
                       value={level}
-                      checked={level === currentTime}
-                      onChange={() => {
-                        setTime(level);
+                      checked={level === state.mode}
+                      onChange={(e) => {
+                        dispatch({
+                          type: "SELECT_MODE",
+                          payload: e.target.value as "Time (60s)" | "Passage",
+                        });
                         // setShowLevels(false);
                       }}
                       name="list-radio"
@@ -185,9 +201,11 @@ const Controls = ({
           )}
         </div>
         <button
-        className="absolute top-24 right-8 md:hidden"
+          className="absolute top-24 right-8 md:hidden"
           onClick={() => {
-            handleRefresh();
+            dispatch({
+              type: "SET_CURRENT_TEXT",
+            });
             const img = imgRef.current;
             if (!img) return;
 
@@ -202,7 +220,7 @@ const Controls = ({
             };
             img.addEventListener("animationend", cleanUp);
           }}
-          disabled={!hasStarted}
+          disabled={!state.playStarted}
         >
           <img src={RestartIcon} alt="refresh icon" ref={imgRef} />
         </button>
