@@ -156,7 +156,7 @@ export const stopTimer = (state: any, dispatch: (action: any) => void) => {
   // Only calculate and save metrics if user actually typed something
   // AND either: it's Passage mode OR timer hasn't reached 0 (user finished early)
   const shouldSaveResult = state.userInput.length > 0 && 
-    (state.mode === "Passage" || state.clock > 0);
+    (state.mode === "Passage" || state.clock > 0) && !state.playEnded;
   
   if (shouldSaveResult) {
     const totalChars = state.correctChars + state.wrongChars;

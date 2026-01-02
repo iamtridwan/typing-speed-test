@@ -93,7 +93,6 @@ const CompleteModal = () => {
             type="button"
             onClick={() => {
               stopTimer(state, dispatch);
-
               dispatch({ type: "END_PLAY", payload: false });
               dispatch({ type: "START_PLAY", payload: false });
               dispatch({ type: "UPDATE_USERINPUT", payload: "" });
