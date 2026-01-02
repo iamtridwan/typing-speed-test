@@ -105,6 +105,7 @@ const CompleteModal = () => {
               dispatch({ type: "SET_START_TIME", payload: null });
               dispatch({ type: "SET_CURRENT_TEXT" });
               dispatch({ type: "TIMER", payload: 60 });
+              
             }}
             className="transition-colors cursor-pointer flex text-white gap-2 bg-[#262626] rounded-lg p-2 items-center justify-center hover:bg-[#333333]"
           >

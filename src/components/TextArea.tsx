@@ -1,42 +1,48 @@
 import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import { useAppContext } from "../context/AppContext";
-import { stopTimer } from "../lib/utils";
+import { stopTimer, pauseTimer } from "../lib/utils";
 import RestartIcon from "../assets/images/icon-restart.svg";
-import LiveStats from "./LiveStats"; // ✅ Import
+import LiveStats from "./LiveStats";
 
 const TextArea = () => {
   const { state, dispatch } = useAppContext();
   const [userInput, setUserInpur] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  // ✅ Sync local userInput with global state
+  useEffect(() => {
+    if (state.userInput === "" && userInput !== "") {
+      setUserInpur("");
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    }
+  }, [state.userInput]);
+
   // make user able to type
   useEffect(() => {
-    if (state.playStarted) {
+    if (state.playStarted && !state.isPaused) {
       inputRef.current?.focus();
     }
-  }, [state.playStarted]);
+  }, [state.playStarted, state.isPaused]);
 
   // Calculate live WPM every second while typing
   useEffect(() => {
-    if (!state.playStarted || state.playEnded) {
+    if (!state.playStarted || state.playEnded || state.isPaused) {
       return;
     }
 
     const wpmInterval = setInterval(() => {
       if (state.correctChars > 0) {
         let timeElapsed: number;
-
+        
         if (state.mode === "Passage") {
-          // For Passage mode, calculate from start time
-          timeElapsed = state.startTime
-            ? (Date.now() - state.startTime) / 1000 / 60
-            : 0;
+          timeElapsed = state.startTime ? (Date.now() - state.startTime) / 1000 / 60 : 0;
         } else {
-          // For Timed mode, calculate from clock
           timeElapsed = (60 - state.clock) / 60;
         }
-
+        
         if (timeElapsed > 0) {
           const wordsTyped = state.correctChars / 5;
           const liveWpm = Math.round(wordsTyped / timeElapsed);
@@ -46,40 +52,32 @@ const TextArea = () => {
     }, 1000);
 
     return () => clearInterval(wpmInterval);
-  }, [
-    state.playStarted,
-    state.playEnded,
-    state.clock,
-    state.correctChars,
-    state.mode,
-    state.startTime,
-    dispatch,
-  ]);
+  }, [state.playStarted, state.playEnded, state.isPaused, state.clock, state.correctChars, state.mode, state.startTime, dispatch]);
 
   // update user inputted text and track correct/wrong chars
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (state.isPaused) return;
+    
     if (state.userInput.length < state.currentText.length) {
       const newInput = e.target.value;
       const newCharIndex = newInput.length - 1;
-
-      // Track the new character typed
+      
       if (newCharIndex >= 0 && newCharIndex < state.currentText.length) {
-        const isCorrect =
-          newInput[newCharIndex] === state.currentText[newCharIndex];
-
+        const isCorrect = newInput[newCharIndex] === state.currentText[newCharIndex];
+        
         if (isCorrect) {
           dispatch({
-            type: "UPDATE_CORRECT_CHARS",
-            payload: state.correctChars + 1,
+            type: 'UPDATE_CORRECT_CHARS',
+            payload: state.correctChars + 1
           });
         } else {
           dispatch({
-            type: "UPDATE_WRONG_CHARS",
-            payload: state.wrongChars + 1,
+            type: 'UPDATE_WRONG_CHARS',
+            payload: state.wrongChars + 1
           });
         }
       }
-
+      
       dispatch({ type: "UPDATE_USERINPUT", payload: newInput });
       setUserInpur(newInput);
     }
@@ -96,22 +94,23 @@ const TextArea = () => {
   // stop timer when user finish typing before end of count down
   useEffect(() => {
     if (
-      state.playStarted &&
-      state.userInput.length > 0 &&
+      state.playStarted && 
+      !state.isPaused &&
+      state.userInput.length > 0 && 
       state.userInput.length >= state.currentText.length
     ) {
       inputRef.current!.value = "";
       inputRef.current?.blur();
       setUserInpur("");
 
-      // Stop the timer
       stopTimer(state, dispatch);
+      
       setTimeout(() => {
         dispatch({ type: "END_PLAY", payload: true });
         dispatch({ type: "START_PLAY", payload: false });
-      }, 100); // Small delay to allow state updates
+      }, 100);
     }
-  }, [state.userInput, state.playStarted, state.currentText.length]);
+  }, [state.userInput, state.playStarted, state.isPaused, state.currentText.length, dispatch]);
 
   // clear interval to avoid memory leak
   useEffect(() => {
@@ -122,6 +121,37 @@ const TextArea = () => {
     };
   }, [state.intervalId]);
 
+  const handlePause = () => {
+    pauseTimer(state, dispatch);
+    dispatch({ type: "SET_PLAY_RESET", payload: true });
+  };
+
+  const handleRestartButton = () => {
+    // Stop timer
+    stopTimer(state, dispatch);
+    
+    // Reset everything
+    dispatch({ type: "SET_PLAY_RESET", payload: true });
+    dispatch({ type: "START_PLAY", payload: false });
+    dispatch({ type: "END_PLAY", payload: false });
+    dispatch({ type: "SET_PAUSED", payload: false });
+    dispatch({ type: "UPDATE_USERINPUT", payload: "" });
+    dispatch({ type: "UPDATE_CORRECT_CHARS", payload: 0 });
+    dispatch({ type: "UPDATE_WRONG_CHARS", payload: 0 });
+    dispatch({ type: "UPDATE_WPM", payload: 0 });
+    dispatch({ type: "UPDATE_LIVE_WPM", payload: 0 });
+    dispatch({ type: "SET_ACCURACY", payload: 0 });
+    dispatch({ type: "SET_START_TIME", payload: null });
+    dispatch({ type: "SET_PAUSED_TIME", payload: null });
+    dispatch({ type: "TIMER", payload: 60 });
+    
+    // Clear local state
+    setUserInpur("");
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="w-full p-2 md:p-5 h-fit relative">
       <input
@@ -129,13 +159,13 @@ const TextArea = () => {
         ref={inputRef}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        disabled={state.isPaused}
         className="absolute top-0 left-0 opacity-0 w-full cursor-default"
       />
-
-      {/* Live Stats - Show above text */}
+      
       <LiveStats />
 
-      <p className="text-start text-xl mb-2 md:text-2xl lg:text-3xl leading-8 md:leading-12 text-[#949497] pb-5 border-[#949497]/30 border-b mt-6" onClick={() => inputRef.current?.focus()}>
+      <p className="text-start text-lg mb-2 md:text-xl lg:text-2xl leading-8 md:leading-12 text-[#949497] pb-5 border-[#949497] border-b mt-6">
         {state.currentText.split("").map((char, index) => {
           let color = "#949497";
           let borderBottom = "none";
@@ -151,32 +181,36 @@ const TextArea = () => {
           );
         })}
       </p>
-
-      <div className="w-full flex items-center justify-center mt-4">
-        <button
-          type="button"
-          onClick={() => {
-            dispatch({ type: "SET_PLAY_RESET", payload: true });
-            dispatch({ type: "START_PLAY", payload: false });
-            dispatch({ type: "END_PLAY", payload: false });
-            dispatch({ type: "UPDATE_USERINPUT", payload: "" });
-            dispatch({ type: "UPDATE_CORRECT_CHARS", payload: 0 });
-            dispatch({ type: "UPDATE_WRONG_CHARS", payload: 0 });
-            dispatch({ type: "UPDATE_WPM", payload: 0 });
-            dispatch({ type: "UPDATE_LIVE_WPM", payload: 0 }); // ✅ Reset live WPM
-            dispatch({ type: "SET_ACCURACY", payload: 0 });
-            dispatch({ type: "SET_START_TIME", payload: null });
-            dispatch({ type: "TIMER", payload: 60 });
-            setUserInpur("");
-            stopTimer(state, dispatch);
-          }}
-          className="flex text-white gap-2 bg-[#262626] rounded-lg p-2 items-center justify-center hover:bg-[#333333] transition-colors"
-        >
-          <span>Restart Test</span>
-          <img src={RestartIcon} alt="refresh icon" />
-        </button>
+      
+      <div className="w-full flex items-center justify-center gap-3 mt-4">
+        {/* Pause Button - Only show when playing and not paused */}
+        {state.playStarted && !state.playEnded && !state.isPaused && (
+          <button
+            type="button"
+            onClick={handlePause}
+            className="flex text-white gap-2 bg-[#177DFF] rounded-lg p-2 items-center justify-center hover:bg-[#1565cc] transition-colors"
+          >
+            <span>Pause Test</span>
+            {/* <img src={PauseIcon} alt="pause icon" className="w-5 h-5" /> */}
+            <span>⏸</span>
+          </button>
+        )}
+        
+        {/* Restart Button - Only show when paused or not started */}
+        {(!state.playStarted || state.isPaused) && (
+          <button
+            type="button"
+            onClick={handleRestartButton}
+            className="flex text-white gap-2 bg-[#262626] rounded-lg p-2 items-center justify-center hover:bg-[#333333] transition-colors"
+          >
+            <span>Restart Test</span>
+            <img src={RestartIcon} alt="refresh icon" />
+          </button>
+        )}
       </div>
-      {!state.playStarted && <Modal />}
+      
+      {/* Show modal when not started OR when paused (isPlayReset) */}
+      {(!state.playStarted || state.isPlayReset) && <Modal />}
     </div>
   );
 };

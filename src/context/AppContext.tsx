@@ -43,6 +43,8 @@ type ActionType =
   | { type: "UPDATE_WRONG_CHARS"; payload: number }
   | { type: "SET_IS_HIGHEST_SCORE"; payload: boolean }
   | { type: "SET_START_TIME"; payload: number | null }
+  | { type: "SET_PAUSED"; payload: boolean }
+  | { type: "SET_PAUSED_TIME"; payload: number | null }
   | { type: "SET_INTERVAL_ID"; payload: number | null };
 
 const initialState: StateType = {
@@ -67,6 +69,8 @@ const initialState: StateType = {
   bestScores: { easy: 0, medium: 0, hard: 0 },
   testHistory: [],
   startTime: null,
+   isPaused: false,
+  pausedTime: null,
 };
 
 function reducer(state: StateType, action: ActionType): StateType {
@@ -81,6 +85,18 @@ function reducer(state: StateType, action: ActionType): StateType {
       return {
         ...state,
         bestScore: action.payload,
+      };
+
+    case "SET_PAUSED":
+      return {
+        ...state,
+        isPaused: action.payload,
+      };
+    
+    case "SET_PAUSED_TIME":
+      return {
+        ...state,
+        pausedTime: action.payload,
       };
 
     case "SET_START_TIME":
