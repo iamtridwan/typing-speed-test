@@ -6,18 +6,26 @@ import Controls from "./components/Controls";
 import TextArea from "./components/TextArea";
 import { useAppContext } from "./context/AppContext";
 import CompleteModal from "./components/CompleteModal";
+import { loadBestScores, loadTestHistory } from "./lib/storage";
+import TestHistory from "./components/TestHistory";
 
 function App() {
   const { state, dispatch } = useAppContext();
   useEffect(() => {
     dispatch({ type: "SET_CURRENT_TEXT" });
+    // Load best scores
+    const bestScores = loadBestScores();
+    dispatch({ type: "SET_BEST_SCORES", payload: bestScores });
 
-    const storedBestScore = localStorage.getItem('typingTestBestScore');
-    if (storedBestScore) {
-      dispatch({ type: "SET_BEST_SCORE", payload: parseInt(storedBestScore) });
-    }
+    // Load test history
+    const history = loadTestHistory();
+    dispatch({ type: "LOAD_TEST_HISTORY", payload: history });
+
+    // const storedBestScore = localStorage.getItem('typingTestBestScore');
+    // if (storedBestScore) {
+    //   dispatch({ type: "SET_BEST_SCORE", payload: parseInt(storedBestScore) });
+    // }
   }, []);
-
 
   return (
     <>
@@ -27,6 +35,7 @@ function App() {
         <Controls />
       </div>
       <TextArea />
+      <TestHistory />
       {state.playEnded && <CompleteModal />}
     </>
   );

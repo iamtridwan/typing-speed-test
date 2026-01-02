@@ -1,45 +1,33 @@
 import { useAppContext } from "../context/AppContext";
 
-// type Props = {
-//   time: number;
-// };
-
 const ScoreBoard = () => {
-    const { state } = useAppContext()
-
-  const formatTime = () => {
-    if (state.clock < 10) {
-      return `0:0${state.clock}`;
-    } else {
-      return `0:${state.clock}`;
-    }
-  };
+  const { state } = useAppContext();
+  
+  // Get current level's best score
+  const currentLevelBest = state.bestScores[state.level.toLowerCase() as 'easy' | 'medium' | 'hard'];
 
   return (
-    <div className="flex items-center md:gap-4 justify-between md:justify-start w-full md:w-fit">
-      <div className="flex items-center md:gap-2 pr-12 md:pr-4 border-r border-[#949497] flex-col md:flex-row justify-center">
-        <p className="text-[#949497] text-base m-0 md:text-lg">WPM:</p>
-        <p className="text-white font-bold m-0 text-xl md:text-lg">{state.wpm}</p>
+    <div className="flex items-center gap-4">
+      {/* Current Level Best Score */}
+      <div className="bg-[#262626] rounded-lg p-4 border border-[#949497]/20">
+        <p className="text-[#949497] text-sm mb-1">Best ({state.level})</p>
+        <p className="text-white font-bold text-2xl">{currentLevelBest} WPM</p>
       </div>
-      <div className="flex items-center md:gap-2 pr-12 md:pr-4 border-r border-[#949497] flex-col md:flex-row justify-center">
-        <p className="text-[#949497] m-0 text-base md:text-lg">Accuracy:</p>
-        <p className="text-white font-bold m-0 text-xl md:text-lg">
-          {state.accuracy}%
-        </p>
-      </div>
-      <div className="flex items-center md:gap-2 flex-col md:flex-row justify-center">
-        <p className="text-[#949497] text-base m-0 md:text-lg">Time:</p>
-        <p
-          className={`${
-            state.clock < 10
-              ? "text-[#D64D5B]"
-              : state.clock >= 10 && state.clock <= 20
-              ? "text-[#F4DC73]"
-              : "text-white"
-          } font-bold m-0 text-xl md:text-lg`}
-        >
-          {formatTime()}
-        </p>
+
+      {/* All Best Scores */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[#949497] text-xs w-16">Easy:</span>
+          <span className="text-white font-semibold">{state.bestScores?.easy}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[#949497] text-xs w-16">Medium:</span>
+          <span className="text-white font-semibold">{state.bestScores?.medium}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[#949497] text-xs w-16">Hard:</span>
+          <span className="text-white font-semibold">{state.bestScores?.hard}</span>
+        </div>
       </div>
     </div>
   );
