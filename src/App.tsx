@@ -30,12 +30,12 @@ function App() {
   return (
     <>
       <Header />
-      <div className="flex items-center md:items-start lg:items-center flex-col lg:flex-row justify-between gap-4 mt-16 pb-3 border-b border-[#949497]">
+      <div className="flex items-center md:items-start lg:items-center flex-col lg:flex-row justify-between gap-4 mt-16 pb-3 border-b border-[#949497]/30">
         <ScoreBoard />
         <Controls />
       </div>
       <TextArea />
-      <TestHistory />
+      {state.showHistoryModal && <TestHistory />}
       {state.playEnded && <CompleteModal />}
     </>
   );

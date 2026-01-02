@@ -13,7 +13,7 @@ const Controls = () => {
   const { state, dispatch } = useAppContext();
 
   return (
-    <div className="flex items-center md:gap-4 justify-between md:justify-start w-full md:w-fit">
+    <div className="flex items-center md:gap-4 md:mt-10 justify-between md:justify-start w-full md:w-fit">
       <div className="hidden md:flex items-center gap-2">
         <p className="text-[#949497] text-base m-0 md:text-lg">Difficulty:</p>
         {levels.map((level) => (
@@ -201,7 +201,7 @@ const Controls = () => {
           )}
         </div>
         <button
-          className="absolute top-24 right-8 md:hidden"
+          className="absolute top-18 right-8 md:hidden"
           onClick={() => {
             dispatch({
               type: "SET_CURRENT_TEXT",

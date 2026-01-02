@@ -39,8 +39,10 @@ type ActionType =
   | { type: "UPDATE_WPM"; payload: number }
   | { type: "UPDATE_LIVE_WPM"; payload: number }
   | { type: "UPDATE_CORRECT_CHARS"; payload: number }
+  | { type: "SET_SHOW_HISTORY_MODAL"; payload: boolean }
   | { type: "UPDATE_WRONG_CHARS"; payload: number }
   | { type: "SET_IS_HIGHEST_SCORE"; payload: boolean }
+  | { type: "SET_START_TIME"; payload: number | null }
   | { type: "SET_INTERVAL_ID"; payload: number | null };
 
 const initialState: StateType = {
@@ -60,9 +62,11 @@ const initialState: StateType = {
   correctChars: 0,
   wrongChars: 0,
   isHighestScore: false,
+  showHistoryModal: false,
   liveWpm: 0,
   bestScores: { easy: 0, medium: 0, hard: 0 },
   testHistory: [],
+  startTime: null,
 };
 
 function reducer(state: StateType, action: ActionType): StateType {
@@ -79,6 +83,12 @@ function reducer(state: StateType, action: ActionType): StateType {
         bestScore: action.payload,
       };
 
+    case "SET_START_TIME":
+      return {
+        ...state,
+        startTime: action.payload,
+      };
+
     case "SET_BEST_SCORES":
       return {
         ...state,
@@ -93,6 +103,11 @@ function reducer(state: StateType, action: ActionType): StateType {
       return {
         ...state,
         testHistory: action.payload,
+      };
+    case "SET_SHOW_HISTORY_MODAL":
+      return {
+        ...state,
+        showHistoryModal: action.payload,
       };
 
     case "UPDATE_LIVE_WPM":

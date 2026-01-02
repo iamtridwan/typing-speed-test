@@ -3,7 +3,7 @@ import { handleTimer, stopTimer } from "../lib/utils";
 
 const Modal = () => {
   const { state, dispatch } = useAppContext();
-  
+
   return (
     <div
       className="absolute top-0 left-0 w-full h-full backdrop-blur-md bg-black/5"
@@ -22,21 +22,26 @@ const Modal = () => {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent parent div click
-                  
+
                   // Clear any existing timer
                   stopTimer(state, dispatch);
-                  
+
                   // Reset everything to initial state
-                  dispatch({ type: "UPDATE_USERINPUT", payload: '' });
+                  dispatch({ type: "UPDATE_USERINPUT", payload: "" });
                   dispatch({ type: "UPDATE_CORRECT_CHARS", payload: 0 });
                   dispatch({ type: "UPDATE_WRONG_CHARS", payload: 0 });
                   dispatch({ type: "UPDATE_WPM", payload: 0 });
                   dispatch({ type: "SET_ACCURACY", payload: 0 });
+                  dispatch({ type: "SET_SHOW_HISTORY_MODAL", payload: false });
+                  dispatch({ type: "SET_START_TIME", payload: null });
                   dispatch({ type: "SET_CURRENT_TEXT" });
-                  dispatch({ type: "TIMER", payload: state.mode === "Passage" ? 0 : 60 });
+                  dispatch({
+                    type: "TIMER",
+                    payload: state.mode === "Passage" ? 0 : 60,
+                  });
                   dispatch({ type: "SET_PLAY_RESET", payload: false });
                   dispatch({ type: "START_PLAY", payload: true });
-                  
+
                   // Start new timer
                   handleTimer(state, dispatch);
                 }}
@@ -48,7 +53,7 @@ const Modal = () => {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent parent div click
-                  
+
                   dispatch({ type: "START_PLAY", payload: true });
                   dispatch({ type: "SET_PLAY_RESET", payload: false });
                   dispatch({ type: "UPDATE_LIVE_WPM", payload: 0 });
