@@ -125,9 +125,9 @@ Please keep changes small and include tests where appropriate.
 
 ---
 
-## License & credits 📄
+## credits 📄
 
-Add a license file if you want to open source the project (e.g. MIT).
+Thanks to the folks at Frontend Mentor[https://www.frontendmentor.io/challenges/typing-speed-test] for providing this challenge.
 
 Icons & fonts included under `src/assets/` — check their source files for attribution.
 
