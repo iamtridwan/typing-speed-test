@@ -3,6 +3,7 @@ import Modal from "./Modal";
 import { useAppContext } from "../context/AppContext";
 import { stopTimer } from "../lib/utils";
 import RestartIcon from "../assets/images/icon-restart.svg";
+import LiveStats from "./LiveStats"; // ✅ Import
 
 const TextArea = () => {
   const { state, dispatch } = useAppContext();
@@ -15,6 +16,25 @@ const TextArea = () => {
       inputRef.current?.focus();
     }
   }, [state.playStarted]);
+
+  // Calculate live WPM every second while typing
+  useEffect(() => {
+    if (!state.playStarted || state.playEnded) {
+      return;
+    }
+
+    const wpmInterval = setInterval(() => {
+      const timeElapsed = (60 - state.clock) / 60; // in minutes
+      
+      if (timeElapsed > 0 && state.correctChars > 0) {
+        const wordsTyped = state.correctChars / 5; // Average word length
+        const liveWpm = Math.round(wordsTyped / timeElapsed);
+        dispatch({ type: "UPDATE_LIVE_WPM", payload: liveWpm });
+      }
+    }, 1000); // Update every second
+
+    return () => clearInterval(wpmInterval);
+  }, [state.playStarted, state.playEnded, state.clock, state.correctChars, dispatch]);
 
   // update user inputted text and track correct/wrong chars
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,34 +72,17 @@ const TextArea = () => {
     }
   };
 
-  // Calculate metrics when typing is complete
-  // const calculateMetrics = () => {
-  //   const totalChars = state.correctChars + state.wrongChars;
-    
-  //   // Calculate accuracy
-  //   const accuracy = totalChars > 0 
-  //     ? Math.round((state.correctChars / totalChars) * 100) 
-  //     : 0;
-    
-  //   // Calculate WPM (assuming average word length of 5 characters)
-  //   const timeElapsed = (60 - state.clock) / 60; // in minutes
-  //   const wordsTyped = state.correctChars / 5;
-  //   const wpm = timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0;
-    
-  //   dispatch({ type: "SET_ACCURACY", payload: accuracy });
-  //   dispatch({ type: "UPDATE_WPM", payload: wpm });
-  // };
-
   // stop timer when user finish typing before end of count down
   useEffect(() => {
-    if (state.userInput.length > 0 && state.userInput.length >= state.currentText.length) {
+    if (
+      state.playStarted && 
+      state.userInput.length > 0 && 
+      state.userInput.length >= state.currentText.length
+    ) {
       inputRef.current!.value = "";
       inputRef.current?.blur();
       setUserInpur("");
 
-      // Calculate metrics before stopping
-      // calculateMetrics();
-      
       // Stop the timer
       stopTimer(state, dispatch);
       dispatch({ type: "END_PLAY", payload: true });
@@ -95,8 +98,6 @@ const TextArea = () => {
     };
   }, [state.intervalId]);
 
-  
-
   return (
     <div className="w-full p-2 md:p-5 h-fit relative">
       <input
@@ -106,7 +107,11 @@ const TextArea = () => {
         onKeyDown={handleKeyDown}
         className="absolute top-0 left-0 opacity-0 w-full cursor-default"
       />
-      <p className="text-start text-lg mb-2 md:text-xl lg:text-2xl leading-8 md:leading-12 text-[#949497] pb-5 border-[#949497] border-b">
+      
+      {/* Live Stats - Show above text */}
+      <LiveStats />
+
+      <p className="text-start text-lg mb-2 md:text-xl lg:text-2xl leading-8 md:leading-12 text-[#949497] pb-5 border-[#949497] border-b mt-6">
         {state.currentText.split("").map((char, index) => {
           let color = "#949497";
           let borderBottom = "none";
@@ -122,7 +127,8 @@ const TextArea = () => {
           );
         })}
       </p>
-      <div className="w-full flex items-center justify-center">
+      
+      <div className="w-full flex items-center justify-center mt-4">
         <button
           type="button"
           onClick={() => {
@@ -133,12 +139,13 @@ const TextArea = () => {
             dispatch({ type: "UPDATE_CORRECT_CHARS", payload: 0 });
             dispatch({ type: "UPDATE_WRONG_CHARS", payload: 0 });
             dispatch({ type: "UPDATE_WPM", payload: 0 });
+            dispatch({ type: "UPDATE_LIVE_WPM", payload: 0 }); // ✅ Reset live WPM
             dispatch({ type: "SET_ACCURACY", payload: 0 });
             dispatch({ type: "TIMER", payload: 60 });
             setUserInpur("");
             stopTimer(state, dispatch);
           }}
-          className="flex text-white gap-2 bg-[#262626] rounded-lg p-2 items-center justify-center"
+          className="flex text-white gap-2 bg-[#262626] rounded-lg p-2 items-center justify-center hover:bg-[#333333] transition-colors"
         >
           <span>Restart Test</span>
           <img src={RestartIcon} alt="refresh icon" />

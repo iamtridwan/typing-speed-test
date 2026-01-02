@@ -1,24 +1,26 @@
 import { createContext, useContext, useReducer, type ReactNode } from "react";
 import { getData } from "../lib/utils";
+import { type BestScores, type StateType, type TestResult } from "../lib/types";
 
-type StateType = {
-  level: "Easy" | "Hard" | "Medium";
-  mode: "Time (60s)" | "Passage";
-  accuracy: number;
-  bestScore: number;
-  correctChars: number;
-  wrongChars: number;
-  wpm: number;
-  resetTime: false;
-  currentText: string;
-  userInput: string;
-  playStarted: boolean;
-  playEnded: boolean;
-  isPlayReset: boolean;
-  isHighestScore: boolean;
-  clock: number;
-  intervalId: number | null;
-};
+// type StateType = {
+//   level: "Easy" | "Hard" | "Medium";
+//   mode: "Time (60s)" | "Passage";
+//   accuracy: number;
+//   bestScore: number;
+//   correctChars: number;
+//   wrongChars: number;
+//   wpm: number;
+//   resetTime: false;
+//   currentText: string;
+//   userInput: string;
+//   playStarted: boolean;
+//   playEnded: boolean;
+//   isPlayReset: boolean;
+//   isHighestScore: boolean;
+//   clock: number;
+//   intervalId: number | null;
+//   liveWpm: number;
+// };
 
 type ActionType =
   | { type: "SELECT_LEVEL"; payload: "Easy" | "Medium" | "Hard" }
@@ -26,12 +28,16 @@ type ActionType =
   | { type: "SET_ACCURACY"; payload: number }
   | { type: "SET_CURRENT_TEXT" }
   | { type: "SET_BEST_SCORE"; payload: number }
+  | { type: "SET_BEST_SCORES"; payload: BestScores }
+  | { type: "ADD_TEST_RESULT"; payload: TestResult }
+  | { type: "LOAD_TEST_HISTORY"; payload: TestResult[] }
   | { type: "UPDATE_USERINPUT"; payload: string }
   | { type: "START_PLAY"; payload: boolean }
   | { type: "END_PLAY"; payload: boolean }
   | { type: "TIMER"; payload: number }
   | { type: "SET_PLAY_RESET"; payload: boolean }
   | { type: "UPDATE_WPM"; payload: number }
+  | { type: "UPDATE_LIVE_WPM"; payload: number }
   | { type: "UPDATE_CORRECT_CHARS"; payload: number }
   | { type: "UPDATE_WRONG_CHARS"; payload: number }
   | { type: "SET_IS_HIGHEST_SCORE"; payload: boolean }
@@ -54,7 +60,9 @@ const initialState: StateType = {
   correctChars: 0,
   wrongChars: 0,
   isHighestScore: false,
-
+  liveWpm: 0,
+  bestScores: { easy: 0, medium: 0, hard: 0 },
+  testHistory: [],
 };
 
 function reducer(state: StateType, action: ActionType): StateType {
@@ -69,6 +77,28 @@ function reducer(state: StateType, action: ActionType): StateType {
       return {
         ...state,
         bestScore: action.payload,
+      };
+
+    case "SET_BEST_SCORES":
+      return {
+        ...state,
+        bestScores: action.payload,
+      };
+    case "ADD_TEST_RESULT":
+      return {
+        ...state,
+        testHistory: [action.payload, ...state.testHistory].slice(0, 20), // Keep last 20 tests
+      };
+    case "LOAD_TEST_HISTORY":
+      return {
+        ...state,
+        testHistory: action.payload,
+      };
+
+    case "UPDATE_LIVE_WPM":
+      return {
+        ...state,
+        liveWpm: action.payload,
       };
 
     case "SET_IS_HIGHEST_SCORE":

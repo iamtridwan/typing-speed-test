@@ -1,4 +1,5 @@
 import data from "./data.json";
+import { addTestResult, updateBestScore } from "./storage";
 // const ONE_MINUTE = 60_000;
 const INTERVAL = 1_000;
 
@@ -82,8 +83,25 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
         dispatch({ type: "SET_ACCURACY", payload: accuracy });
         dispatch({ type: "UPDATE_WPM", payload: wpm });
         
-        // Update best score
-        updateBestScore(wpm, dispatch);
+        // Save test result to history
+        const testResult = {
+          id: `test_${Date.now()}`,
+          date: new Date().toISOString(),
+          level: state.level,
+          mode: state.mode,
+          wpm,
+          accuracy,
+          correctChars: state.correctChars,
+          wrongChars: state.wrongChars,
+          timeElapsed: 60,
+        };
+        
+        addTestResult(testResult);
+        dispatch({ type: "ADD_TEST_RESULT", payload: testResult });
+        
+        // Update best scores
+        const newBestScores = updateBestScore(state.level, wpm, state.bestScores);
+        dispatch({ type: "SET_BEST_SCORES", payload: newBestScores });
         
         dispatch({ type: "TIMER", payload: 0 });
         dispatch({ type: "START_PLAY", payload: false });
@@ -101,21 +119,21 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
 }
 
 // Helper function to update best score
-function updateBestScore(currentWpm: number, dispatch: (action: any) => void) {
-  // Get best score from localStorage
-  const storedBestScore = localStorage.getItem('typingTestBestScore');
-  const bestScore = storedBestScore ? parseInt(storedBestScore) : 0;
+// function updateBestScore(currentWpm: number, dispatch: (action: any) => void) {
+//   // Get best score from localStorage
+//   const storedBestScore = localStorage.getItem('typingTestBestScore');
+//   const bestScore = storedBestScore ? parseInt(storedBestScore) : 0;
   
-  // Update if current score is higher
-  if (currentWpm > bestScore) {
-    localStorage.setItem('typingTestBestScore', currentWpm.toString());
-    dispatch({ type: "SET_BEST_SCORE", payload: currentWpm });
-    dispatch({ type: "SET_IS_HIGHEST_SCORE", payload: true });
-  } else {
-    dispatch({ type: "SET_BEST_SCORE", payload: bestScore });
-    dispatch({ type: "SET_IS_HIGHEST_SCORE", payload: false });
-  }
-}
+//   // Update if current score is higher
+//   if (currentWpm > bestScore) {
+//     localStorage.setItem('typingTestBestScore', currentWpm.toString());
+//     dispatch({ type: "SET_BEST_SCORE", payload: currentWpm });
+//     dispatch({ type: "SET_IS_HIGHEST_SCORE", payload: true });
+//   } else {
+//     dispatch({ type: "SET_BEST_SCORE", payload: bestScore });
+//     dispatch({ type: "SET_IS_HIGHEST_SCORE", payload: false });
+//   }
+// }
 
 // Add a new function to stop the timer
 export const stopTimer = (state: any, dispatch: (action: any) => void) => {
@@ -131,15 +149,32 @@ export const stopTimer = (state: any, dispatch: (action: any) => void) => {
       ? Math.round((state.correctChars / totalChars) * 100) 
       : 0;
     
-    const timeElapsed = (60 - state.clock) / 60;
+    const timeElapsed = 60 - state.clock;
     const wordsTyped = state.correctChars / 5;
-    const wpm = timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0;
+    const wpm = timeElapsed > 0 ? Math.round((wordsTyped / timeElapsed) * 60) : 0;
     
     dispatch({ type: "SET_ACCURACY", payload: accuracy });
     dispatch({ type: "UPDATE_WPM", payload: wpm });
     
-    // Update best score if current WPM is higher
-    updateBestScore(wpm, dispatch);
+    // Save test result to history
+    const testResult = {
+      id: `test_${Date.now()}`,
+      date: new Date().toISOString(),
+      level: state.level,
+      mode: state.mode,
+      wpm,
+      accuracy,
+      correctChars: state.correctChars,
+      wrongChars: state.wrongChars,
+      timeElapsed,
+    };
+    
+    addTestResult(testResult);
+    dispatch({ type: "ADD_TEST_RESULT", payload: testResult });
+    
+    // Update best scores
+    const newBestScores = updateBestScore(state.level, wpm, state.bestScores);
+    dispatch({ type: "SET_BEST_SCORES", payload: newBestScores });
   }
 };
 
