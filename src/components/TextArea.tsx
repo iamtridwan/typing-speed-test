@@ -24,41 +24,62 @@ const TextArea = () => {
     }
 
     const wpmInterval = setInterval(() => {
-      const timeElapsed = (60 - state.clock) / 60; // in minutes
-      
-      if (timeElapsed > 0 && state.correctChars > 0) {
-        const wordsTyped = state.correctChars / 5; // Average word length
-        const liveWpm = Math.round(wordsTyped / timeElapsed);
-        dispatch({ type: "UPDATE_LIVE_WPM", payload: liveWpm });
+      if (state.correctChars > 0) {
+        let timeElapsed: number;
+
+        if (state.mode === "Passage") {
+          // For Passage mode, calculate from start time
+          timeElapsed = state.startTime
+            ? (Date.now() - state.startTime) / 1000 / 60
+            : 0;
+        } else {
+          // For Timed mode, calculate from clock
+          timeElapsed = (60 - state.clock) / 60;
+        }
+
+        if (timeElapsed > 0) {
+          const wordsTyped = state.correctChars / 5;
+          const liveWpm = Math.round(wordsTyped / timeElapsed);
+          dispatch({ type: "UPDATE_LIVE_WPM", payload: liveWpm });
+        }
       }
-    }, 1000); // Update every second
+    }, 1000);
 
     return () => clearInterval(wpmInterval);
-  }, [state.playStarted, state.playEnded, state.clock, state.correctChars, dispatch]);
+  }, [
+    state.playStarted,
+    state.playEnded,
+    state.clock,
+    state.correctChars,
+    state.mode,
+    state.startTime,
+    dispatch,
+  ]);
 
   // update user inputted text and track correct/wrong chars
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (state.userInput.length < state.currentText.length) {
       const newInput = e.target.value;
       const newCharIndex = newInput.length - 1;
-      
+
       // Track the new character typed
       if (newCharIndex >= 0 && newCharIndex < state.currentText.length) {
-        const isCorrect = newInput[newCharIndex] === state.currentText[newCharIndex];
-        
+        const isCorrect =
+          newInput[newCharIndex] === state.currentText[newCharIndex];
+
         if (isCorrect) {
           dispatch({
-            type: 'UPDATE_CORRECT_CHARS',
-            payload: state.correctChars + 1
+            type: "UPDATE_CORRECT_CHARS",
+            payload: state.correctChars + 1,
           });
         } else {
           dispatch({
-            type: 'UPDATE_WRONG_CHARS',
-            payload: state.wrongChars + 1
+            type: "UPDATE_WRONG_CHARS",
+            payload: state.wrongChars + 1,
           });
         }
       }
-      
+
       dispatch({ type: "UPDATE_USERINPUT", payload: newInput });
       setUserInpur(newInput);
     }
@@ -75,8 +96,8 @@ const TextArea = () => {
   // stop timer when user finish typing before end of count down
   useEffect(() => {
     if (
-      state.playStarted && 
-      state.userInput.length > 0 && 
+      state.playStarted &&
+      state.userInput.length > 0 &&
       state.userInput.length >= state.currentText.length
     ) {
       inputRef.current!.value = "";
@@ -85,9 +106,12 @@ const TextArea = () => {
 
       // Stop the timer
       stopTimer(state, dispatch);
-      dispatch({ type: "END_PLAY", payload: true });
+      setTimeout(() => {
+        dispatch({ type: "END_PLAY", payload: true });
+        dispatch({ type: "START_PLAY", payload: false });
+      }, 100); // Small delay to allow state updates
     }
-  }, [state.userInput]);
+  }, [state.userInput, state.playStarted, state.currentText.length]);
 
   // clear interval to avoid memory leak
   useEffect(() => {
@@ -107,11 +131,11 @@ const TextArea = () => {
         onKeyDown={handleKeyDown}
         className="absolute top-0 left-0 opacity-0 w-full cursor-default"
       />
-      
+
       {/* Live Stats - Show above text */}
       <LiveStats />
 
-      <p className="text-start text-lg mb-2 md:text-xl lg:text-2xl leading-8 md:leading-12 text-[#949497] pb-5 border-[#949497] border-b mt-6">
+      <p className="text-start text-xl mb-2 md:text-2xl lg:text-3xl leading-8 md:leading-12 text-[#949497] pb-5 border-[#949497]/30 border-b mt-6" onClick={() => inputRef.current?.focus()}>
         {state.currentText.split("").map((char, index) => {
           let color = "#949497";
           let borderBottom = "none";
@@ -127,7 +151,7 @@ const TextArea = () => {
           );
         })}
       </p>
-      
+
       <div className="w-full flex items-center justify-center mt-4">
         <button
           type="button"
@@ -141,6 +165,7 @@ const TextArea = () => {
             dispatch({ type: "UPDATE_WPM", payload: 0 });
             dispatch({ type: "UPDATE_LIVE_WPM", payload: 0 }); // ✅ Reset live WPM
             dispatch({ type: "SET_ACCURACY", payload: 0 });
+            dispatch({ type: "SET_START_TIME", payload: null });
             dispatch({ type: "TIMER", payload: 60 });
             setUserInpur("");
             stopTimer(state, dispatch);

@@ -58,7 +58,9 @@ export function getData(level: string) {
 export function handleTimer(state: any, dispatch: (action: any) => void) {
   
   if (state.mode === "Passage") {
-    dispatch({ type: "TIMER", payload: 0 });
+    // For Passage mode, just record the start time
+    dispatch({ type: "SET_START_TIME", payload: Date.now() });
+    dispatch({ type: "TIMER", payload: 0 }); // No countdown for passage mode
     return;
   }
   
@@ -137,6 +139,14 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
 
 // Add a new function to stop the timer
 export const stopTimer = (state: any, dispatch: (action: any) => void) => {
+  // console.log('stopTimer called', {
+  //   mode: state.mode,
+  //   userInputLength: state.userInput.length,
+  //   correctChars: state.correctChars,
+  //   wrongChars: state.wrongChars,
+  //   startTime: state.startTime
+  // });
+
   if (state.intervalId) {
     clearInterval(state.intervalId);
     dispatch({ type: "SET_INTERVAL_ID", payload: null });
@@ -149,9 +159,36 @@ export const stopTimer = (state: any, dispatch: (action: any) => void) => {
       ? Math.round((state.correctChars / totalChars) * 100) 
       : 0;
     
-    const timeElapsed = 60 - state.clock;
-    const wordsTyped = state.correctChars / 5;
-    const wpm = timeElapsed > 0 ? Math.round((wordsTyped / timeElapsed) * 60) : 0;
+    let timeElapsed: number;
+    let wpm: number;
+    
+    if (state.mode === "Passage") {
+      // For Passage mode, calculate time from start time
+      timeElapsed = state.startTime ? Math.round((Date.now() - state.startTime) / 1000) : 0;
+      const wordsTyped = state.correctChars / 5;
+      const timeInMinutes = timeElapsed / 60;
+      wpm = timeInMinutes > 0 ? Math.round(wordsTyped / timeInMinutes) : 0;
+      
+      // console.log('Passage mode calculations:', {
+      //   timeElapsed,
+      //   wordsTyped,
+      //   timeInMinutes,
+      //   wpm,
+      //   accuracy
+      // });
+    } else {
+      // For Timed mode, calculate from remaining clock time
+      timeElapsed = 60 - state.clock;
+      const wordsTyped = state.correctChars / 5;
+      wpm = timeElapsed > 0 ? Math.round((wordsTyped / timeElapsed) * 60) : 0;
+      
+      console.log('Timed mode calculations:', {
+        timeElapsed,
+        wordsTyped,
+        wpm,
+        accuracy
+      });
+    }
     
     dispatch({ type: "SET_ACCURACY", payload: accuracy });
     dispatch({ type: "UPDATE_WPM", payload: wpm });
@@ -169,12 +206,16 @@ export const stopTimer = (state: any, dispatch: (action: any) => void) => {
       timeElapsed,
     };
     
+    // console.log('Test result to save:', testResult);
+    
     addTestResult(testResult);
     dispatch({ type: "ADD_TEST_RESULT", payload: testResult });
     
     // Update best scores
     const newBestScores = updateBestScore(state.level, wpm, state.bestScores);
     dispatch({ type: "SET_BEST_SCORES", payload: newBestScores });
+  } else {
+    console.log('No user input, skipping metric calculation');
   }
 };
 

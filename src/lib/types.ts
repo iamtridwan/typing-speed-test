@@ -39,6 +39,8 @@ export type StateType = {
   isHighestScore: boolean;
   clock: number;
   intervalId: number | null;
+  startTime: number | null;
+  showHistoryModal: boolean;
 };
 
 
