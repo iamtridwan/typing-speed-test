@@ -2,6 +2,8 @@
 
 A lightweight typing test built with **React**, **TypeScript**, and **Vite**. It supports two modes (Timed 60s and Passage), three difficulty levels (Easy / Medium / Hard), shows live stats while you type, and persists best scores and recent test history to localStorage.
 
+visit the live url here[https://typing-speed-test-one-mu.vercel.app/] to check it out
+
 ---
 
 ## Features ✅

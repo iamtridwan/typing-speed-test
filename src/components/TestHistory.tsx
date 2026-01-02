@@ -40,7 +40,7 @@ const TestHistory = () => {
       <div className="bg-black absolute top-18 md:top-20 left-0 w-full h-screen backdrop-blur-3xl flex items-center justify-center">
         <div className="w-[90%] md:w-[70%] mx-auto mt-8 p-6 bg-[#262626] rounded-lg border border-[#949497]/20">
           <div className="flex items-center justify-between w-full mb-2">
-            <h3 className="text-white text-xl font-bold ">Test History</h3>
+            <h3 className="text-white text-xl font-bold ">Speed Test History</h3>
             <button
               type="button"
               onClick={() => dispatch({type:'SET_SHOW_HISTORY_MODAL', payload: false})}
@@ -61,7 +61,7 @@ const TestHistory = () => {
     <div className="bg-black absolute top-18 md:top-20 left-0 w-full backdrop-blur-3xl flex items-center justify-center">
     <div className="w-[90%] md:w-[70%] mx-auto mt-8 p-6 bg-[#262626] rounded-lg border border-[#949497]/20">
       <div className="flex items-center justify-between w-full mb-4">
-        <h3 className="text-white text-xl font-bold">Test History</h3>
+        <h3 className="text-white text-xl font-bold">Speed Test History</h3>
         <button
           type="button"
           onClick={() => dispatch({type:'SET_SHOW_HISTORY_MODAL', payload: false})}
