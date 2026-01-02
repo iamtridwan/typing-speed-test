@@ -58,9 +58,8 @@ export function getData(level: string) {
 export function handleTimer(state: any, dispatch: (action: any) => void) {
   
   if (state.mode === "Passage") {
-    // For Passage mode, just record the start time
     dispatch({ type: "SET_START_TIME", payload: Date.now() });
-    dispatch({ type: "TIMER", payload: 0 }); // No countdown for passage mode
+    dispatch({ type: "TIMER", payload: 0 });
     return;
   }
   
@@ -72,8 +71,9 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
       
       if (elapsed <= 0) {
         clearInterval(intervalId);
+        dispatch({ type: "SET_INTERVAL_ID", payload: null });
         
-        // Calculate final metrics when timer expires
+        // Just update the metrics, don't save yet
         const totalChars = state.correctChars + state.wrongChars;
         const accuracy = totalChars > 0 
           ? Math.round((state.correctChars / totalChars) * 100) 
@@ -84,31 +84,31 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
         
         dispatch({ type: "SET_ACCURACY", payload: accuracy });
         dispatch({ type: "UPDATE_WPM", payload: wpm });
-        
-        // Save test result to history
-        const testResult = {
-          id: `test_${Date.now()}`,
-          date: new Date().toISOString(),
-          level: state.level,
-          mode: state.mode,
-          wpm,
-          accuracy,
-          correctChars: state.correctChars,
-          wrongChars: state.wrongChars,
-          timeElapsed: 60,
-        };
-        
-        addTestResult(testResult);
-        dispatch({ type: "ADD_TEST_RESULT", payload: testResult });
-        
-        // Update best scores
-        const newBestScores = updateBestScore(state.level, wpm, state.bestScores);
-        dispatch({ type: "SET_BEST_SCORES", payload: newBestScores });
-        
         dispatch({ type: "TIMER", payload: 0 });
+        
+        // Now save the test result
+        if (state.correctChars > 0) {
+          const testResult = {
+            id: `test_${Date.now()}`,
+            date: new Date().toISOString(),
+            level: state.level,
+            mode: state.mode,
+            wpm,
+            accuracy,
+            correctChars: state.correctChars,
+            wrongChars: state.wrongChars,
+            timeElapsed: 60,
+          };
+          
+          addTestResult(testResult);
+          dispatch({ type: "ADD_TEST_RESULT", payload: testResult });
+          
+          const newBestScores = updateBestScore(state.level, wpm, state.bestScores);
+          dispatch({ type: "SET_BEST_SCORES", payload: newBestScores });
+        }
+        
         dispatch({ type: "START_PLAY", payload: false });
         dispatch({ type: "END_PLAY", payload: true });
-        dispatch({ type: "SET_INTERVAL_ID", payload: null });
       } else {
         dispatch({ type: "TIMER", payload: elapsed / 1000 });
       }
@@ -139,21 +139,26 @@ export function handleTimer(state: any, dispatch: (action: any) => void) {
 
 // Add a new function to stop the timer
 export const stopTimer = (state: any, dispatch: (action: any) => void) => {
-  // console.log('stopTimer called', {
-  //   mode: state.mode,
-  //   userInputLength: state.userInput.length,
-  //   correctChars: state.correctChars,
-  //   wrongChars: state.wrongChars,
-  //   startTime: state.startTime
-  // });
+  console.log('stopTimer called', {
+    mode: state.mode,
+    userInputLength: state.userInput.length,
+    correctChars: state.correctChars,
+    wrongChars: state.wrongChars,
+    startTime: state.startTime,
+    clock: state.clock
+  });
 
   if (state.intervalId) {
     clearInterval(state.intervalId);
     dispatch({ type: "SET_INTERVAL_ID", payload: null });
   }
   
-  // Only calculate metrics if user actually typed something
-  if (state.userInput.length > 0) {
+  // Only calculate and save metrics if user actually typed something
+  // AND either: it's Passage mode OR timer hasn't reached 0 (user finished early)
+  const shouldSaveResult = state.userInput.length > 0 && 
+    (state.mode === "Passage" || state.clock > 0);
+  
+  if (shouldSaveResult) {
     const totalChars = state.correctChars + state.wrongChars;
     const accuracy = totalChars > 0 
       ? Math.round((state.correctChars / totalChars) * 100) 
@@ -163,26 +168,24 @@ export const stopTimer = (state: any, dispatch: (action: any) => void) => {
     let wpm: number;
     
     if (state.mode === "Passage") {
-      // For Passage mode, calculate time from start time
       timeElapsed = state.startTime ? Math.round((Date.now() - state.startTime) / 1000) : 0;
       const wordsTyped = state.correctChars / 5;
       const timeInMinutes = timeElapsed / 60;
       wpm = timeInMinutes > 0 ? Math.round(wordsTyped / timeInMinutes) : 0;
       
-      // console.log('Passage mode calculations:', {
-      //   timeElapsed,
-      //   wordsTyped,
-      //   timeInMinutes,
-      //   wpm,
-      //   accuracy
-      // });
+      console.log('Passage mode calculations:', {
+        timeElapsed,
+        wordsTyped,
+        timeInMinutes,
+        wpm,
+        accuracy
+      });
     } else {
-      // For Timed mode, calculate from remaining clock time
       timeElapsed = 60 - state.clock;
       const wordsTyped = state.correctChars / 5;
       wpm = timeElapsed > 0 ? Math.round((wordsTyped / timeElapsed) * 60) : 0;
       
-      console.log('Timed mode calculations:', {
+      console.log('Timed mode (early finish) calculations:', {
         timeElapsed,
         wordsTyped,
         wpm,
@@ -206,7 +209,7 @@ export const stopTimer = (state: any, dispatch: (action: any) => void) => {
       timeElapsed,
     };
     
-    // console.log('Test result to save:', testResult);
+    console.log('Test result to save:', testResult);
     
     addTestResult(testResult);
     dispatch({ type: "ADD_TEST_RESULT", payload: testResult });
@@ -215,7 +218,7 @@ export const stopTimer = (state: any, dispatch: (action: any) => void) => {
     const newBestScores = updateBestScore(state.level, wpm, state.bestScores);
     dispatch({ type: "SET_BEST_SCORES", payload: newBestScores });
   } else {
-    console.log('No user input, skipping metric calculation');
+    console.log('Not saving - either no input or timer expired naturally');
   }
 };
 
