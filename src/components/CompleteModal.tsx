@@ -78,30 +78,39 @@ const CompleteModal = () => {
 
               // Reset everything to initial state
               dispatch({ type: "END_PLAY", payload: false });
-              dispatch({ type: "START_PLAY", payload: false }); // This will show the initial Modal
+              dispatch({ type: "START_PLAY", payload: false });
               dispatch({ type: "UPDATE_USERINPUT", payload: "" });
               dispatch({ type: "UPDATE_CORRECT_CHARS", payload: 0 });
               dispatch({ type: "UPDATE_WRONG_CHARS", payload: 0 });
               dispatch({ type: "UPDATE_WPM", payload: 0 });
+              dispatch({ type: "UPDATE_LIVE_WPM", payload: 0 }); // ✅ Add this
               dispatch({ type: "SET_ACCURACY", payload: 0 });
               dispatch({ type: "SET_CURRENT_TEXT" });
-              dispatch({ type: "TIMER", payload: 60 }); // Reset clock to 60
+              dispatch({ type: "TIMER", payload: 60 });
             }}
             className="transition-colors invert cursor-pointer flex text-white gap-2 bg-[#262626] rounded-lg py-2 px-3 items-center justify-center"
           >
-            <span>{state.isHighestScore ? 'Beat This Score' : 'Go Again'}</span>
+            <span>{state.isHighestScore ? "Beat This Score" : "Go Again"}</span>
             <img src={RestartIcon} alt="refresh icon" />
           </button>
         </div>
         <img
           src={StarOne}
           alt="star icon"
-          className={`${state.isHighestScore ? "hidden" : "max-w-[3rem] absolute -bottom-16 right-5"} `}
+          className={`${
+            state.isHighestScore
+              ? "hidden"
+              : "max-w-[3rem] absolute -bottom-16 right-5"
+          } `}
         />
         <img
           src={StarTwo}
           alt="star icon"
-          className={`${state.isHighestScore ? "hidden" : "max-w-[3rem] absolute top-6 left-12"}`}
+          className={`${
+            state.isHighestScore
+              ? "hidden"
+              : "max-w-[3rem] absolute top-6 left-12"
+          }`}
         />
 
         <img

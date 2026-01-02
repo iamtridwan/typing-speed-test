@@ -51,6 +51,7 @@ const Modal = () => {
                   
                   dispatch({ type: "START_PLAY", payload: true });
                   dispatch({ type: "SET_PLAY_RESET", payload: false });
+                  dispatch({ type: "UPDATE_LIVE_WPM", payload: 0 });
                   // Don't call handleTimer again - the timer is already running!
                 }}
                 className="bg-[#177DFF] hover:cursor-pointer w-24 text-white rounded-lg p-3 text-base font-medium"
