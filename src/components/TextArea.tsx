@@ -135,7 +135,7 @@ const TextArea = () => {
       {/* Live Stats - Show above text */}
       <LiveStats />
 
-      <p className="text-start text-xl mb-2 md:text-2xl lg:text-3xl leading-8 md:leading-12 text-[#949497] pb-5 border-[#949497]/30 border-b mt-6">
+      <p className="text-start text-xl mb-2 md:text-2xl lg:text-3xl leading-8 md:leading-12 text-[#949497] pb-5 border-[#949497]/30 border-b mt-6" onClick={() => inputRef.current?.focus()}>
         {state.currentText.split("").map((char, index) => {
           let color = "#949497";
           let borderBottom = "none";

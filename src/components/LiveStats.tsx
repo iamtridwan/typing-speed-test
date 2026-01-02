@@ -55,7 +55,7 @@ const LiveStats = () => {
 
       {/* Live Stats Grid */}
       {state.playStarted && !state.playEnded && (
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {/* Live WPM */}
           <div className="bg-[#262626] rounded-lg p-3 border border-[#949497]/20">
             <p className="text-[#949497] text-xs mb-1">Live WPM</p>

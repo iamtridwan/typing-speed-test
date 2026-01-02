@@ -37,14 +37,14 @@ const TestHistory = () => {
 
   if (state.testHistory.length === 0) {
     return (
-      <div className="bg-black absolute top-18 md:top-20 left-0 w-full backdrop-blur-3xl flex items-center justify-center">
+      <div className="bg-black absolute top-18 md:top-20 left-0 w-full h-screen backdrop-blur-3xl flex items-center justify-center">
         <div className="w-[90%] md:w-[70%] mx-auto mt-8 p-6 bg-[#262626] rounded-lg border border-[#949497]/20">
           <div className="flex items-center justify-between w-full mb-2">
             <h3 className="text-white text-xl font-bold ">Test History</h3>
             <button
               type="button"
               onClick={() => dispatch({type:'SET_SHOW_HISTORY_MODAL', payload: false})}
-              className="bg-[#717178] h-10 w-10 text-while  border border-[#FFFFFF]/20 rounded-full flex items-center justify-center"
+              className="bg-[#717178] text-sm cursor-pointer h-10 w-10 text-while  border border-[#FFFFFF]/20 rounded-full flex items-center justify-center"
             >
               X
             </button>
@@ -65,7 +65,7 @@ const TestHistory = () => {
         <button
           type="button"
           onClick={() => dispatch({type:'SET_SHOW_HISTORY_MODAL', payload: false})}
-          className="bg-[#717178] h-10 w-10 text-while  border border-[#FFFFFF]/20 rounded-full flex items-center justify-center"
+          className="bg-[#717178] h-10 w-10 cursor-pointer text-while text-sm border border-[#FFFFFF]/20 rounded-full flex items-center justify-center"
         >
           X
         </button>

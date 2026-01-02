@@ -39,7 +39,7 @@ const CompleteModal = () => {
             }
            
           </h2>
-          <p className="text-[#949497]">
+          <p className="text-[#949497] w-[95%] mx-auto md:w-full">
             {
               isNewBest ? "You’re getting faster. That was incredible typing." : "Solid run. Keep pushing to beat your high score."
             }
