@@ -222,4 +222,89 @@ export const stopTimer = (state: any, dispatch: (action: any) => void) => {
   }
 };
 
+export const pauseTimer = (state: any, dispatch: (action: any) => void) => {
+  // Clear the interval
+  if (state.intervalId) {
+    clearInterval(state.intervalId);
+    dispatch({ type: "SET_INTERVAL_ID", payload: null });
+  }
+  
+  // Mark as paused and save when we paused
+  dispatch({ type: "SET_PAUSED", payload: true });
+  dispatch({ type: "SET_PAUSED_TIME", payload: Date.now() });
+  
+  console.log('Timer paused', { clock: state.clock, mode: state.mode });
+};
+
+export const resumeTimer = (state: any, dispatch: (action: any) => void) => {
+  dispatch({ type: "SET_PAUSED", payload: false });
+  
+  if (state.mode === "Passage") {
+    // For Passage mode, adjust startTime to account for pause duration
+    if (state.startTime && state.pausedTime) {
+      const pauseDuration = Date.now() - state.pausedTime;
+      const adjustedStartTime = state.startTime + pauseDuration;
+      dispatch({ type: "SET_START_TIME", payload: adjustedStartTime });
+    }
+    dispatch({ type: "SET_PAUSED_TIME", payload: null });
+    console.log('Passage mode timer resumed');
+  } else {
+    // For Timed mode, restart the countdown from current clock value
+    let elapsed = state.clock * 1000;
+    
+    const intervalId = setInterval(() => {
+      elapsed -= INTERVAL;
+      
+      if (elapsed <= 0) {
+        clearInterval(intervalId);
+        dispatch({ type: "SET_INTERVAL_ID", payload: null });
+        
+        // Calculate final metrics when timer expires
+        const totalChars = state.correctChars + state.wrongChars;
+        const accuracy = totalChars > 0 
+          ? Math.round((state.correctChars / totalChars) * 100) 
+          : 0;
+        
+        const wordsTyped = state.correctChars / 5;
+        const wpm = Math.round(wordsTyped);
+        
+        dispatch({ type: "SET_ACCURACY", payload: accuracy });
+        dispatch({ type: "UPDATE_WPM", payload: wpm });
+        dispatch({ type: "TIMER", payload: 0 });
+        
+        // Save the test result
+        if (state.correctChars > 0) {
+          const testResult = {
+            id: `test_${Date.now()}`,
+            date: new Date().toISOString(),
+            level: state.level,
+            mode: state.mode,
+            wpm,
+            accuracy,
+            correctChars: state.correctChars,
+            wrongChars: state.wrongChars,
+            timeElapsed: 60,
+          };
+          
+          addTestResult(testResult);
+          dispatch({ type: "ADD_TEST_RESULT", payload: testResult });
+          
+          const newBestScores = updateBestScore(state.level, wpm, state.bestScores);
+          dispatch({ type: "SET_BEST_SCORES", payload: newBestScores });
+        }
+        
+        dispatch({ type: "START_PLAY", payload: false });
+        dispatch({ type: "END_PLAY", payload: true });
+      } else {
+        dispatch({ type: "TIMER", payload: elapsed / 1000 });
+      }
+    }, INTERVAL);
+    
+    dispatch({ type: "SET_INTERVAL_ID", payload: intervalId as any });
+    dispatch({ type: "SET_PAUSED_TIME", payload: null });
+    
+    console.log('Timed mode timer resumed from', state.clock);
+  }
+};
+
 
